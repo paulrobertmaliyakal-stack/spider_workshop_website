@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-item {
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background-color: #4ade80;
+        }
+
+        .status-indicator.disconnected {
+            background-color: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .leaderboard {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .leaderboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 25px;
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .rank {
+            font-size: 2em;
+            font-weight: bold;
+            width: 60px;
+            text-align: center;
+        }
+
+        .rank-1 {
+            color: #fbbf24;
+        }
+
+        .rank-2 {
+            color: #94a3b8;
+        }
+
+        .trophy {
+            font-size: 2.5em;
+            margin-right: 10px;
+        }
+
+        .esp-info {
+            flex: 1;
+            margin-left: 20px;
+        }
+
+        .esp-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .esp-id {
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+
+        .esp-stats {
+            font-size: 0.85em;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        .score {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-left: auto;
+            padding-left: 20px;
+        }
+
+        .score-animation {
+            animation: scoreIncrease 0.5s ease;
+        }
+
+        @keyframes scoreIncrease {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #4ade80; }
+            100% { transform: scale(1); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-title {
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .last-update {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 ESP Leaderboard</h1>
+        <p class="subtitle">Real-time competition tracking</p>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-indicator disconnected" id="wsStatus"></span>
+                <span id="wsStatusText">Connecting...</span>
+            </div>
+            <div class="status-item">
+                Connected Clients: <strong id="clientCount">0</strong>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <div class="leaderboard-header">
+                Current Standings
+            </div>
+            <div id="leaderboardContent">
+                <!-- Leaderboard items will be inserted here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="resetLeaderboard()">🔄 Reset Leaderboard</button>
+        </div>
+
+        <div class="last-update" id="lastUpdate">
+            Waiting for data...
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notifTitle"></div>
+        <div class="notification-message" id="notifMessage"></div>
+    </div>
+
+    <script>
+        let ws;
+        let reconnectInterval;
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.getElementById('wsStatus').className = 'status-indicator connected';
+                document.getElementById('wsStatusText').textContent = 'Connected';
+                clearInterval(reconnectInterval);
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleMessage(message);
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket disconnected');
+                document.getElementById('wsStatus').className = 'status-indicator disconnected';
+                document.getElementById('wsStatusText').textContent = 'Disconnected';
+                
+                // Attempt to reconnect every 3 seconds
+                reconnectInterval = setInterval(() => {
+                    console.log('Attempting to reconnect...');
+                    connectWebSocket();
+                }, 3000);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function handleMessage(message) {
+            console.log('Received:', message);
+
+            switch(message.type) {
+                case 'initial_data':
+                    updateLeaderboard(message.leaderboard);
+                    break;
+                
+                case 'score_update':
+                    updateLeaderboard(message.leaderboard);
+                    showNotification(
+                        '🎯 Point Awarded!',
+                        `${message.requesting_esp} triggered → ${message.points_awarded_to} gets +${message.points} points!`
+                    );
+                    break;
+                
+                case 'leaderboard_reset':
+                    updateLeaderboard(message.leaderboard);
+                    showNotification('🔄 Reset', 'Leaderboard has been reset to zero');
+                    break;
+            }
+
+            updateLastUpdate();
+        }
+
+        function updateLeaderboard(leaderboard) {
+            const content = document.getElementById('leaderboardContent');
+            
+            if (!leaderboard || leaderboard.length === 0) {
+                content.innerHTML = '<div style="padding: 20px; text-align: center; color: #6b7280;">No data available</div>';
+                return;
+            }
+
+            content.innerHTML = leaderboard.map((esp, index) => {
+                const rank = index + 1;
+                const trophy = rank === 1 ? '🥇' : '🥈';
+                const rankClass = `rank-${rank}`;
+                
+                return `
+                    <div class="leaderboard-item">
+                        <span class="trophy">${trophy}</span>
+                        <span class="rank ${rankClass}">#${rank}</span>
+                        <div class="esp-info">
+                            <div class="esp-name">${esp.name}</div>
+                            <div class="esp-id">ID: ${esp.esp_id}</div>
+                            <div class="esp-stats">
+                                Total Requests: ${esp.total_requests} | 
+                                Last Request: ${esp.last_request ? new Date(esp.last_request).toLocaleTimeString() : 'Never'}
+                            </div>
+                        </div>
+                        <div class="score" id="score-${esp.esp_id}">${esp.score}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Animate score changes
+            leaderboard.forEach(esp => {
+                const scoreElement = document.getElementById(`score-${esp.esp_id}`);
+                if (scoreElement) {
+                    scoreElement.classList.add('score-animation');
+                    setTimeout(() => {
+                        scoreElement.classList.remove('score-animation');
+                    }, 500);
+                }
+            });
+        }
+
+        function showNotification(title, message) {
+            const notif = document.getElementById('notification');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifMessage').textContent = message;
+            
+            notif.classList.add('show');
+            
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 4000);
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `Last updated: ${now.toLocaleTimeString()}`;
+        }
+
+        function resetLeaderboard() {
+            if (confirm('Are you sure you want to reset the leaderboard?')) {
+                fetch('/api/leaderboard/reset', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Leaderboard reset:', data);
+                })
+                .catch(error => {
+                    console.error('Error resetting leaderboard:', error);
+                    alert('Failed to reset leaderboard');
+                });
+            }
+        }
+
+        // Initialize WebSocket connection on page load
+        connectWebSocket();
+
+        // Keep connection alive with periodic pings
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping' }));
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
