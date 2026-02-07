@@ -1,13 +1,14 @@
-#include <WiFi.h>  // For ESP32, use <ESP8266WiFi.h> for ESP8266
-#include <HTTPClient.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
+#include <WiFiClient.h>
 
 // WiFi credentials
-const char* ssid = "YOUR_WIFI_SSID";
-const char* password = "YOUR_WIFI_PASSWORD";
+const char* ssid = "VIVO";
+const char* password = "pass1234";
 
 // Server details
-const char* serverIP = "192.168.1.100";  // Replace with your server IP
+const char* serverIP = "10.12.189.154";  // Replace with your server IP
 const int serverPort = 8000;
 String serverURL = "http://" + String(serverIP) + ":" + String(serverPort) + "/api/esp/request";
 
@@ -15,7 +16,7 @@ String serverURL = "http://" + String(serverIP) + ":" + String(serverPort) + "/a
 const char* espID = "ESP_1";  // Change to "ESP_2" for the second ESP
 
 // Button pin (optional - for manual triggering)
-const int buttonPin = 0;  // GPIO 0 (boot button on most ESP boards)
+const int buttonPin = 0;  // GPIO 0 (boot/flash button is usually connected to D3 or use GPIO0 directly)
 bool lastButtonState = HIGH;
 
 void setup() {
@@ -73,6 +74,7 @@ void loop() {
 
 void sendRequest() {
   if (WiFi.status() == WL_CONNECTED) {
+    WiFiClient client;
     HTTPClient http;
     
     // Create JSON payload
@@ -82,8 +84,8 @@ void sendRequest() {
     String jsonString;
     serializeJson(jsonDoc, jsonString);
     
-    // Send POST request
-    http.begin(serverURL);
+    // Send POST request - ESP8266 requires WiFiClient as parameter
+    http.begin(client, serverURL);
     http.addHeader("Content-Type", "application/json");
     
     int httpResponseCode = http.POST(jsonString);
