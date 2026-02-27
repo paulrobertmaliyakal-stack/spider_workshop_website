@@ -109,7 +109,7 @@ void setup() {
 void loop() {
 
   handleJoystickUDP();
-  handlePacketTimeout();   // ⭐ MOTOR SAFETY STOP
+   // ⭐ MOTOR SAFETY STOP
   handleLDR();
 
   yield(); // keep WiFi alive
@@ -118,17 +118,7 @@ void loop() {
 /* =========================================================
                 PACKET TIMEOUT SAFETY
 ========================================================= */
-void handlePacketTimeout() {
 
-  if (millis() - lastPacketTime > packetTimeout) {
-
-    if (!motorsStopped) {
-      Serial.println("⚠ No packets -> STOP motors");
-      stopMotors();
-      motorsStopped = true;
-    }
-  }
-}
 
 /* =========================================================
                     UDP JOYSTICK
@@ -146,16 +136,16 @@ void handleJoystickUDP() {
   if (len <= 0) return;
 
   packetBuffer[len] = '\0';
-  lastPacketTime = millis();
-  motorsStopped = false;
+ 
+
 
   char* comma = strchr(packetBuffer, ',');
   if (!comma) return;
 
   *comma = '\0';
 
-  xVal = constrain(atof(packetBuffer), 0, 255);
-  yVal = constrain(atof(comma + 1), 0, 255);
+  xVal = constrain(atof(packetBuffer), -150, 150);
+  yVal = constrain(atof(comma + 1), -150, 150);
 
   driveDifferential(xVal, yVal);
 }
@@ -165,8 +155,8 @@ void handleJoystickUDP() {
 ========================================================= */
 void driveDifferential(float x, float y) {
 
-  float turn  = (x - 128.0) / 128.0;
-  float speed = (128.0 - y) / 128.0;
+  float turn  = (x ) / 150.0;
+  float speed = ( y) / 150.0;
 
   // deadzone
   if (abs(turn) < 0.05) turn = 0;
